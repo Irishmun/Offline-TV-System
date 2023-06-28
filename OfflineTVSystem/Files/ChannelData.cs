@@ -1,5 +1,5 @@
-﻿using OTS.Rating;
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace OTS.Files
 {
@@ -30,6 +30,6 @@ namespace OTS.Files
         ///is earlier than this value, this channel will stop airing at that time instead.</remarks>
         public TimeSpan EndTime { get; set; }
         /// <summary>Shows that are aired on this channel</summary>
-        public ShowData[] Shows { get; set; }//consider changing this to list for easier addition/removal of shows
+        public HashSet<ShowData> Shows { get; set; }//consider changing this to list for easier addition/removal of shows
     }
 }

@@ -20,5 +20,10 @@ namespace OTS.Files
         public string Summary { get; set; }
         /// <summary>Age rating for the show or movie</summary>
         public AgeRating Rating { get; set; }
+
+        public override string ToString()
+        {
+            return $"\"{Name}\", Rated {Rating}. Summary: {Summary}";
+        }
     }
 }
