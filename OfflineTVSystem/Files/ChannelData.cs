@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace OTS.Files
 {
@@ -31,5 +32,43 @@ namespace OTS.Files
         public TimeSpan EndTime { get; set; }
         /// <summary>Shows that are aired on this channel</summary>
         public HashSet<ShowData> Shows { get; set; }//consider changing this to list for easier addition/removal of shows
+
+        public ChannelData(short number, string name, string channelType, TimeSpan start, TimeSpan end, params ShowData[] shows)
+        {
+            this.Number = number;
+            this.Name = name;
+            this.ChannelType = channelType;
+            this.StartTime = start;
+            this.EndTime = end;
+            this.Shows = new HashSet<ShowData>(shows);
+        }
+
+        public static ChannelData TestData()
+        {
+            return new ChannelData(-1, "TestShow", "Test Channel", TimeSpan.Zero, TimeSpan.Zero);
+        }
+
+        public static ChannelData TestDataWithShow()
+        {
+            return new ChannelData(-1, "TestShow", "Test Channel", TimeSpan.Zero, TimeSpan.Zero, ShowData.TestShow());
+        }
+
+        public string StartMilitary => StartTime.ToString("hhmm");
+        public string EndMilitary => EndTime.ToString("hhmm");
+
+        public string GetAllShows()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (ShowData show in Shows)
+            {
+                sb.AppendLine(show.Name);
+            }
+            return sb.ToString();
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}({ChannelType}), channel no.{Number}, Starts at {StartMilitary} hours, Ends at {EndMilitary} hours, Has {Shows.Count} shows.";
+        }
     }
 }

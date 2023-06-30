@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "OTS_Console": {
+      "commandName": "Project"
+    },
+    "OTS_Console Help": {
+      "commandName": "Project",
+      "commandLineArgs": "help"
+    }
+  }
+}
