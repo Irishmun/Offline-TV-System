@@ -3,9 +3,9 @@
     "OTS_Console": {
       "commandName": "Project"
     },
-    "OTS_Console Help": {
+    "OTS_Console Program": {
       "commandName": "Project",
-      "commandLineArgs": "help"
+      "commandLineArgs": "--runasprogram"
     }
   }
 }
