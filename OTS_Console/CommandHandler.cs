@@ -135,7 +135,7 @@ namespace OTS_Console
             AgeRating rating = AgeRating.NOT_RATED;
             string output = string.Empty;//used for console output when using ReadLine()
 
-            Console.WriteLine("Creating a new show... (Brackets is default value)");
+            Console.WriteLine("Creating a new show... (Brackets is default value in capitals)");
             //show name
             Console.Write($"Please provide the show name [\"{name}\"]");
             output = Console.ReadLine();
@@ -175,6 +175,10 @@ namespace OTS_Console
                     Console.WriteLine($"Unable to parse Age rating, adjust it if needed with {COMMAND_EDITSHOW}...");
                 }
             }
+            //[Y/n]
+            //is ads?
+            //is movie?
+            //has specials?
             ShowData show = new ShowData(name, thumbnailPath, summary, rating);
             Console.WriteLine("Writing to data file...");
             int size = _fileWriter.WriteToDataFile(show, _defaultPath);

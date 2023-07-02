@@ -25,23 +25,33 @@ namespace OTS.Files
         public string Summary { get; set; }
         /// <summary>Age rating for the show or movie</summary>
         public AgeRating Rating { get; set; }
+        /// <summary>Is this show all ads?</summary>
+        public bool IsAds { get; set; }
+        /// <summary>Is this show a movie (single file or multi-part)?</summary>
+        public bool IsMovie { get; set; }
+        /// <summary>Does this show have seasonal or multi-part specials?</summary>
+        public bool HasSpecials { get; set; }
 
         /// <summary>Struct that contains the data for a show</summary>
         /// <param name="name">The Name of the show or movie (max length 128 characters)</param>
         /// <param name="thumbnailPath">The Path to the show's or movie's thumbnail</param>
         /// <param name="summary">Summary of the show or movie (max length 320 characters)</param>
         /// <param name="rating">Age rating for the show or movie</param>
-        public ShowData(string name, string thumbnailPath, string summary, AgeRating rating)
+        public ShowData(string name, string thumbnailPath, string summary, AgeRating rating, bool isAds = false, bool isMovie = false, bool hasSpecials = false)
         {
             this.Name = name;
             this.ThumbnailPath = thumbnailPath;
             this.Summary = summary;
             this.Rating = rating;
+            this.IsAds = isAds;
+            this.IsMovie = isMovie;
+            this.HasSpecials = hasSpecials;
         }
 
         public static ShowData TestShow()
         {
-            return new ShowData("Test Show", System.AppDomain.CurrentDomain.BaseDirectory, "Lorem ipsum dolor sit amet.",AgeRating.NOT_RATED);        }
+            return new ShowData("Test Show", System.AppDomain.CurrentDomain.BaseDirectory, "Lorem ipsum dolor sit amet.", AgeRating.NOT_RATED);
+        }
 
         public override string ToString()
         {
