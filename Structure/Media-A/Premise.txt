@@ -1,0 +1,3 @@
+Each channel has its own folder
+each folder containing all their shows in folders (episodes per show)
+each folder contains a data file (json) containing the data of the channel and an array of shows that are shown

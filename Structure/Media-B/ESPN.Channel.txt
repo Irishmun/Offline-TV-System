@@ -1,0 +1,7 @@
+{
+ channel name: ESPN,
+ type: sports,
+ start time: 0:00,
+ end time: 0:00,
+ shows:["Horse Deryb"]
+}

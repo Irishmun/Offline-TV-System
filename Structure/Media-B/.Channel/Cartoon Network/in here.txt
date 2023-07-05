@@ -1,0 +1,3 @@
+channel chime audio file
+up next art box (layout file and image)
+starting & ending art (if needed)

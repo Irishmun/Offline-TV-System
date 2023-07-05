@@ -1,0 +1,7 @@
+{
+ channel name: FOX,
+ type: series,
+ start time: 0:00,
+ end time: 0:00,
+ shows:["Bones, Simpsons, Futurama, The Critic"]
+}

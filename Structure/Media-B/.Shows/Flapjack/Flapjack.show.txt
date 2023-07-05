@@ -1,0 +1,6 @@
+{
+ name: The Marvelous Misadventures of Flapjack
+ thumbnail: flp_thumb.png,
+ description: (general description of the show),
+ rating: 7+ (enum value)
+}

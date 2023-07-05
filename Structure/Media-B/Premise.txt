@@ -1,0 +1,4 @@
+Each show is stored in their own folders (episodes per show)
+each show has a data file containing info about that show (maybe per episode?)
+each channel is a data file, containing the shows that it airs (maybe a seed for random)
+

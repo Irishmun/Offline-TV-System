@@ -1,0 +1,22 @@
+- episode metadata file:
+	- ~300 chars per episode description
+	- episode title (~100 chars)
+	- show metadata file refference
+	- episode file name (refference to the video file)
+- show metadata file:
+	- ~300 chars show description
+	- ~100 chars show title
+	- filename show thumbnail
+	- age rating
+
+
+year schedule of a show:
+- 47912 11 minute episodes per year per channel
+ - episode metadata file ~100chars and (either [SeasonEpisode]"S001E001" OR [EpisodeName] "CamelCaseName" or combo thereof)
+ -starting time and duration (as this would allow for the time calculation itself)[2400,030] (starting time, episode length in minutes)
+would make for a total lenght of ~110 chars total, give or take
+
+IN TOTAL:
+25297920 bytes of data for an entire year (~26MB)
+483840 bytes of data per week (~500KB) <--- will probably go for this, while still generating a full years worth of schedules (stored in week# system [week01,week02,etc.])
+	-maybe regenerate the ones that are yet to come if new episodes/shows are detected

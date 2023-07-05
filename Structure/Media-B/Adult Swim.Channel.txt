@@ -1,0 +1,8 @@
+{
+ channel: 15,
+ name: Adult Swim,
+ type: adult cartoons,
+ start time: 20:00,
+ end time: 7:00,
+ shows:["King of the hill, aqua teen hunger force, family guy"]
+}

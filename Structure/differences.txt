@@ -1,0 +1,19 @@
+Media A:
+- sorted by channel
+- channel data contains name, target audience, channel type, starting time, ending time, shows by show details
+- shows have all info stored per channel (this would include the video files as well)
+
+Each channel has its own folder
+each folder containing all their shows in folders (episodes per show)
+each folder contains a data file (json) containing the data of the channel and an array of shows that are shown
+
+
+Media B:
+-sorted by both channel and show (shows have their own folder)
+-channel data file contains channel number, name, channel type, starting time, ending time, shows by show data filename
+-show data file contains show name, thumbnail, description, age rating 
+
+Each show is stored in their own folders (episodes per show)
+each show has a data file containing info about that show (maybe per episode?)
+each channel is a data file, containing the shows that it airs (maybe a seed for the schedule generation)
+

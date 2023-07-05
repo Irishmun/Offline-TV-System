@@ -1,0 +1,8 @@
+{
+ channel: 15,
+ name: Cartoon Network,
+ type: cartoons,
+ start time: 7:00,
+ end time: 20:00,
+ shows:["Flapjack","Fosters Home","Powerpuff Girls"]
+}

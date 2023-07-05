@@ -1,0 +1,7 @@
+{
+ channel name: Comedy Central,
+ type: comedy,
+ start time: 0:00,
+ end time: 0:00,
+ shows:["Simpsons, Futurama, South Park, Modern Family, Married With Children, Takeshis Castle"]
+}
