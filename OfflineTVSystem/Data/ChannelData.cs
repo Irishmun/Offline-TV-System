@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace OTS.Files
+namespace OTS.Data
 {
     /// <summary>Struct that contains the data for a channel</summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]

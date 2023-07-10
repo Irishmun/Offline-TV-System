@@ -1,7 +1,7 @@
 ﻿using OTS.Rating;
 using System.Runtime.InteropServices;
 
-namespace OTS.Files
+namespace OTS.Data
 {
     /// <summary>Struct that contains the data for a show</summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -55,7 +55,7 @@ namespace OTS.Files
 
         public override string ToString()
         {
-            return $"\"{Name}\", Rated {Rating}. Summary: \"{Summary}\"";
+            return $"\"{Name}\", Rated {Rating}, is ads:{IsAds}, is movie:{IsMovie}, has specials:{HasSpecials}. Summary: \"{Summary}\"";
         }
     }
 }

@@ -19,10 +19,14 @@ namespace OTS_Console
 #if DEBUG
             void RunAsProgram()
             {
-                Console.WriteLine("insert command:");
+                Console.WriteLine("insert command (split arguments with \"|\"):");
                 string[] command = Console.ReadLine().Split("|");
                 if (command.Length > 0)
                 {
+                    for (int i = 0; i < command.Length; i++)
+                    {
+                        command[i] = command[i].Trim();
+                    }
                     handler.ProcessArgument(command);
                 }
                 RunAsProgram();

@@ -1,4 +1,5 @@
-﻿using OTS.Files;
+﻿using OTS.Data;
+using OTS.Files;
 using OTS.Rating;
 using System;
 using System.Collections;
@@ -14,12 +15,9 @@ namespace OTS_Console
 {
     internal class CommandHandler
     {
-        private Files _fileWriter = new Files();
-        private string _defaultPath = AppDomain.CurrentDomain.BaseDirectory;
-        private void DebugCommand(string arg)
-        {
-
-        }
+        private ChannelDataIO _channelDataIO = new ChannelDataIO();
+        private ShowDataIO _showDataIO = new ShowDataIO();
+        private string _workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
         internal void ProcessArgument(string[] args)
         {
@@ -75,8 +73,40 @@ namespace OTS_Console
                     break;
                 case COMMAND_EDITSHOW:
                     //edit the given show file, first pass the show name, then the path it's in (defaults to current directory .shows/)
+                    if (args.Length >= 2)
+                    {
+                        if (_showDataIO.GetExistingPath(Path.Combine(_workingDirectory, ShowDataIO.BASE_FOLDER, ShowData.DEFAULT_FOLDER), out string path, args[1] + ShowData.FILETYPE, args[1] + ShowData.FILETYPE_LONG) == true)
+                        {
+                            ShowData data = _showDataIO.GetData(path);
+                            EditShow(data);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unable to find show \"{args[1]}\", please check spelling and try again.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Usage: {COMMAND_EDITSHOW} [Show name]");
+                    }
                     break;
                 case COMMAND_EDITCHANNEL:
+                    if (args.Length >= 2)
+                    {
+                        if (_channelDataIO.GetExistingPath(Path.Combine(_workingDirectory, ChannelDataIO.BASE_FOLDER, ChannelData.DEFAULT_FOLDER), out string path, args[1] + ShowData.FILETYPE, args[1] + ShowData.FILETYPE_LONG) == true)
+                        {
+                            ChannelData data = _channelDataIO.GetData(path);
+                            EditChannel(data);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unable to find show \"{args[1]}\", please check spelling and try again.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Usage: {COMMAND_EDITSHOW} [Show name]");
+                    }
                     //edit the given channel file, first pass the channel name, then the path it's in (defaults to current directory .channels/)
                     break;
                 case COMMAND_EDITSCHEDULE:
@@ -130,29 +160,27 @@ namespace OTS_Console
         void CreateShow()
         {
             string name = "show";
-            string thumbnailPath = name + "cover.jpg";
+            string thumbnailPath = "cover.jpg";
             string summary = string.Empty;
             AgeRating rating = AgeRating.NOT_RATED;
-            string output = string.Empty;//used for console output when using ReadLine()
+            bool isAds = false, isMovie = false, hasSpecials = false;
+            string? output = string.Empty;//used for console output when using ReadLine()
 
             Console.WriteLine("Creating a new show... (Brackets is default value in capitals)");
             //show name
-            Console.Write($"Please provide the show name [\"{name}\"]");
+            Console.Write($"Please provide the show name [\"{name}\"]: ");
             output = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(output) == false)
             {
                 name = output;
+                thumbnailPath = Path.Combine(name, thumbnailPath);
             }
             //thumbnail
-            Console.Write($"Please provide the path to the show's thumbnail [shows/{thumbnailPath}]: ");
+            Console.Write($"Please provide the path to the show's thumbnail [{ShowData.DEFAULT_FOLDER}\\{thumbnailPath}]: ");
             output = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(output) == false)
             {
-                thumbnailPath = output;
-            }
-            if (File.Exists(thumbnailPath) == false)
-            {
-                Console.WriteLine("File not found but still added, ensure that the value is correct.");
+                thumbnailPath = Path.Combine(name, output);
             }
             //summary
             Console.Write($"Please provide a summary to the show [\"{summary}\"]: ");
@@ -175,13 +203,40 @@ namespace OTS_Console
                     Console.WriteLine($"Unable to parse Age rating, adjust it if needed with {COMMAND_EDITSHOW}...");
                 }
             }
-            //[Y/n]
             //is ads?
-            //is movie?
-            //has specials?
-            ShowData show = new ShowData(name, thumbnailPath, summary, rating);
+            Console.Write("Is this show all ads? [y/N]: ");
+            output = Console.ReadLine();
+            if (output.ToLower().StartsWith("y") == true)
+            {
+                isAds = true;
+            }
+            if (isAds == false)
+            {
+
+                //is movie?
+                Console.Write("Is this show a movie, single or multi-part? [y/N]: ");
+                output = Console.ReadLine();
+                if (output.ToLower().StartsWith("y") == true)
+                {
+                    isMovie = true;
+                }
+                //has specials?
+                Console.Write("Does this show have specials? (multi-part, seasonal, etc.) [y/N]: ");
+                output = Console.ReadLine();
+                if (output.ToLower().StartsWith("y") == true)
+                {
+                    hasSpecials = true;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Defaulting IsMovie and HasSpecials to false...");
+                isMovie = false;
+                hasSpecials = false;
+            }
+            ShowData show = new ShowData(name, thumbnailPath, summary, rating, isAds, isMovie, hasSpecials);
             Console.WriteLine("Writing to data file...");
-            int size = _fileWriter.WriteToDataFile(show, _defaultPath);
+            int size = _showDataIO.WriteToDataFile(show, _workingDirectory);
             Console.WriteLine($"({size}KB) Created {show}");
         }
         void CreateChannel()
@@ -191,7 +246,7 @@ namespace OTS_Console
             string name = "Channel", channelType = "shows";
             TimeSpan start = TimeSpan.Zero, end = TimeSpan.Zero;
             List<string> shows = new List<string>();
-            string output = string.Empty;//used for console output when using ReadLine()
+            string? output = string.Empty;//used for console output when using ReadLine()
             //channel name
             Console.Write($"Please provide the channel name [\"{name}\"]: ");
             output = Console.ReadLine();
@@ -276,15 +331,135 @@ namespace OTS_Console
             }
             ChannelData channel = new ChannelData(number, name, channelType, start, end, shows.ToArray());
             Console.WriteLine("Writing to data file...");
-            int size = _fileWriter.WriteToDataFile(channel, _defaultPath);
+            int size = _channelDataIO.WriteToDataFile(channel, _workingDirectory);
             Console.WriteLine($"({size}KB) Created {channel}");
         }
 
-        void EditChannel(ChannelData channel)
+        void EditShow(ShowData showToChange)
         {
+            string name = showToChange.Name;
+            string thumbnailPath = showToChange.ThumbnailPath;
+            string summary = showToChange.Summary;
+            AgeRating rating = showToChange.Rating;
+            bool isAds = showToChange.IsAds, isMovie = showToChange.IsMovie, hasSpecials = showToChange.HasSpecials;
+            string? output = string.Empty;//used for console output when using ReadLine()
 
+            Console.WriteLine($"Editing {showToChange.Name}... (Brackets is default value)");
+            //show name
+            Console.Write($"Name [{name}]: ");
+            output = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(output) == false)
+            {
+                name = output;
+            }
+            //thumbnail
+            Console.Write($"Thumbnail Name [{name}\\{Path.GetFileName(thumbnailPath)}]: ");
+            output = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(output) == false)
+            {
+                thumbnailPath = Path.Combine(name, output);
+            }
+            else
+            {
+                thumbnailPath = Path.Combine(name, Path.GetFileName(thumbnailPath));
+            }
+            //summary
+            Console.Write($"Summary, leave empty to use existing summary: ");
+            output = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(output) == false)
+            {
+                summary = output;
+            }
+            //rating
+            Console.Write($"Age rating [{rating}]: ");
+            output = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(output) == false)
+            {
+                if (Enum.TryParse(typeof(AgeRating), output, true, out object result) == true)
+                {
+                    rating = (AgeRating)result;
+                }
+                else
+                {
+                    Console.WriteLine($"Unable to parse Age rating, adjust it if needed with {COMMAND_EDITSHOW}...");
+                }
+            }
+            //[Y/n]
+            //is ads?
+            if (isAds == true)
+            {
+                Console.Write("Is ads [Y/n]: ");
+            }
+            else
+            {
+                Console.Write("Is ads [y/N]: ");
+            }
+            output = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(output) == false && output.ToLower().StartsWith("y") == true)
+            {
+                isAds = true;
+            }
+            else if (string.IsNullOrWhiteSpace(output) == false && output.ToLower().StartsWith("n") == true)
+            {
+                isAds = false;
+            }
+            if (isAds == false)
+            {
+                //is movie?
+                if (isMovie == true)
+                {
+                    Console.Write("Is movie [Y/n]: ");
+                }
+                else
+                {
+                    Console.Write("Is movie [y/N]: ");
+                }
+                output = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(output) == false && output.ToLower().StartsWith("y") == true)
+                {
+                    isMovie = true;
+                }
+                else if (string.IsNullOrWhiteSpace(output) == false && output.ToLower().StartsWith("n") == true)
+                {
+                    isMovie = false;
+                }
+                //has specials?
+                if (hasSpecials == true)
+                {
+                    Console.Write("Has specials [Y/n]: ");
+                }
+                else
+                {
+                    Console.Write("Has specials [y/N]: ");
+                }
+                output = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(output) == false && output.ToLower().StartsWith("y") == true)
+                {
+                    hasSpecials = true;
+                }
+                else if (string.IsNullOrWhiteSpace(output) == false && output.ToLower().StartsWith("n") == true)
+                {
+                    hasSpecials = false;
+                }
+            }
+            ShowData show = new ShowData(name, thumbnailPath, summary, rating, isAds, isMovie, hasSpecials);
+            Console.WriteLine("Updating data file...");
+            int size = _showDataIO.WriteToDataFile(show, _workingDirectory, createContentFolder: false);
+            Console.WriteLine($"({size}KB) Updated {show}");
+            //if name changes, move all over to other folder
+            if (name.Equals(showToChange.Name) == false)
+            {
+                _showDataIO.GetExistingPath(Path.Combine(_workingDirectory, ShowDataIO.BASE_FOLDER, ShowData.DEFAULT_FOLDER), out string oldDataFile, showToChange.Name + ShowData.FILETYPE, showToChange.Name + ShowData.FILETYPE_LONG);
+                _showDataIO.DeleteDataFile(oldDataFile);
+                Console.WriteLine($"Changing show folder name {showToChange.Name} > {name}...");
+                string oldPath = Path.Combine(_workingDirectory, ShowDataIO.BASE_FOLDER, ShowData.DEFAULT_FOLDER, showToChange.Name);
+                string newPath = Path.Combine(_workingDirectory, ShowDataIO.BASE_FOLDER, ShowData.DEFAULT_FOLDER, name);
+                Directory.Move(oldPath, newPath);
+                Console.WriteLine($"Changed show folder name.");
+            }
         }
-        void EditShow(ShowData show)
+
+        void EditChannel(ChannelData channel)
         {
 
         }
