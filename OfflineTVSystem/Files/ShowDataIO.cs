@@ -17,13 +17,21 @@ namespace OTS.Files
             return WriteToFile(data, path, fileName + filetype, createContentFolder);
         }
 
-        public override ShowData GetData(string path)
+        public override bool GetData(string path, out ShowData result)
         {
             if (File.Exists(path) == false)
             { throw new FileNotFoundException(); }
             string json = ReadFileContents(path);
-            ShowData res = JsonSerializer.Deserialize<ShowData>(json);
-            return res;
+            try
+            {
+                result = JsonSerializer.Deserialize<ShowData>(json);
+                return true;
+            }
+            catch (Exception)
+            {
+                result = ShowData.Default;
+                return false;
+            }
         }
 
     }

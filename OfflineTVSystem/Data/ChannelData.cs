@@ -59,6 +59,8 @@ namespace OTS.Data
             this._showDatas = new HashSet<ShowData>();//try and get all showDatas with the names in Shows
         }
 
+        public static ChannelData Default => new ChannelData(default, string.Empty, string.Empty, default, default, new string[0]);
+
         public static ChannelData TestData()
         {
             return new ChannelData(-1, "TestShow", "Test Channel", TimeSpan.Zero, TimeSpan.Zero, new string[0]);
@@ -72,11 +74,20 @@ namespace OTS.Data
         public string GetAllShows()
         {
             StringBuilder sb = new StringBuilder();
-            foreach (ShowData show in _showDatas)
+            foreach (string show in Shows)
             {
-                sb.AppendLine(show.Name);
+                sb.AppendLine("- " + show);
             }
             return sb.ToString();
+        }
+
+        public static TimeSpan TryGetTime(string timeString)
+        {
+            if (TimeSpan.TryParse(timeString, out TimeSpan val) == false)
+            {
+                return TimeSpan.Zero;
+            }
+            return val;
         }
 
         public override string ToString()

@@ -48,6 +48,8 @@ namespace OTS.Data
             this.HasSpecials = hasSpecials;
         }
 
+        public static ShowData Default => new ShowData(string.Empty, string.Empty, string.Empty, default);
+
         public static ShowData TestShow()
         {
             return new ShowData("Test Show", System.AppDomain.CurrentDomain.BaseDirectory, "Lorem ipsum dolor sit amet.", AgeRating.NOT_RATED);

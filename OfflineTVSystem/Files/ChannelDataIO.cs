@@ -15,13 +15,21 @@ namespace OTS.Files
             return WriteToFile(data, path, fileName + filetype, createContentFolder);
         }
 
-        public override ChannelData GetData(string path)
+        public override bool GetData(string path, out ChannelData result)
         {
             if (File.Exists(path) == false)
             { throw new FileNotFoundException(); }
             string json = ReadFileContents(path);
-            ChannelData res = JsonSerializer.Deserialize<ChannelData>(json);
-            return res;
+            try
+            {
+                result = JsonSerializer.Deserialize<ChannelData>(json);
+                return true;
+            }
+            catch (Exception)
+            {
+                result = ChannelData.Default;
+                return false;
+            }
         }
 
     }

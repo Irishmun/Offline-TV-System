@@ -50,9 +50,11 @@ namespace OTS_Console
                     break;
                 case COMMAND_LISTSHOWS:
                     //list all shows in given path OR in current directory if no path is given (recursive)
+                    ListAllShows(Path.Combine(_workingDirectory + ShowDataIO.BASE_FOLDER));
                     break;
                 case COMMAND_LISTCHANNELS:
                     //list all channels in given path OR in current directory if no path is given (recursive)
+                    ListAllChannels(Path.Combine(_workingDirectory + ChannelDataIO.BASE_FOLDER));
                     break;
                 case COMMAND_LISTSCHEDULES:
                     //list all schedules in given path OR in current directory if no path is given(recursive)
@@ -77,8 +79,14 @@ namespace OTS_Console
                     {
                         if (_showDataIO.GetExistingPath(Path.Combine(_workingDirectory, ShowDataIO.BASE_FOLDER, ShowData.DEFAULT_FOLDER), out string path, args[1] + ShowData.FILETYPE, args[1] + ShowData.FILETYPE_LONG) == true)
                         {
-                            ShowData data = _showDataIO.GetData(path);
-                            EditShow(data);
+                            if (_showDataIO.GetData(path, out ShowData data) == true)
+                            {
+                                EditShow(data);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Show file for \"{args[1]}\" is corrupted!");
+                            }
                         }
                         else
                         {
@@ -93,10 +101,17 @@ namespace OTS_Console
                 case COMMAND_EDITCHANNEL:
                     if (args.Length >= 2)
                     {
-                        if (_channelDataIO.GetExistingPath(Path.Combine(_workingDirectory, ChannelDataIO.BASE_FOLDER, ChannelData.DEFAULT_FOLDER), out string path, args[1] + ShowData.FILETYPE, args[1] + ShowData.FILETYPE_LONG) == true)
+                        if (_channelDataIO.GetExistingPath(Path.Combine(_workingDirectory, ChannelDataIO.BASE_FOLDER, ChannelData.DEFAULT_FOLDER), out string path, args[1] + ChannelData.FILETYPE, args[1] + ChannelData.FILETYPE_LONG) == true)
                         {
-                            ChannelData data = _channelDataIO.GetData(path);
-                            EditChannel(data);
+                            if (_channelDataIO.GetData(path, out ChannelData data) == true)
+                            {
+                                EditChannel(data);
+
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Channel file for \"{args[1]}\" is corrupted!");
+                            }
                         }
                         else
                         {
@@ -115,9 +130,47 @@ namespace OTS_Console
                     break;
                 case COMMAND_SHOWINFO:
                     //provide info on given show name (if found)
+                    if (args.Length >= 2)
+                    {
+                        if (_showDataIO.GetExistingPath(Path.Combine(_workingDirectory, ShowDataIO.BASE_FOLDER, ShowData.DEFAULT_FOLDER), out string path, args[1] + ShowData.FILETYPE, args[1] + ShowData.FILETYPE_LONG) == true)
+                        {
+                            if (_showDataIO.GetData(path, out ShowData data) == true)
+                            {
+                                Console.WriteLine(data.ToString());
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Show file for \"{args[1]}\" is corrupted!");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unable to find show \"{args[1]}\", please check spelling and try again.");
+                        }
+                    }
                     break;
                 case COMMAND_CHANNELINFO:
                     //provide info on given channel name (if found)
+                    if (args.Length >= 2)
+                    {
+                        if (_channelDataIO.GetExistingPath(Path.Combine(_workingDirectory, ChannelDataIO.BASE_FOLDER, ChannelData.DEFAULT_FOLDER), out string path, args[1] + ChannelData.FILETYPE, args[1] + ChannelData.FILETYPE_LONG) == true)
+                        {
+                            if (_channelDataIO.GetData(path, out ChannelData data) == true)
+                            {
+                                Console.WriteLine(data.ToString());
+                                Console.WriteLine($"{data.Name} has the following shows:");
+                                Console.WriteLine(data.GetAllShows());
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Channel file for \"{args[1]}\" is corrupted!");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unable to find channel \"{args[1]}\", please check spelling and try again.");
+                        }
+                    }
                     break;
                 case COMMAND_SCHEDULEINFO:
                     //provide info on given schedule name (if found)
@@ -454,15 +507,170 @@ namespace OTS_Console
                 Console.WriteLine($"Changing show folder name {showToChange.Name} > {name}...");
                 string oldPath = Path.Combine(_workingDirectory, ShowDataIO.BASE_FOLDER, ShowData.DEFAULT_FOLDER, showToChange.Name);
                 string newPath = Path.Combine(_workingDirectory, ShowDataIO.BASE_FOLDER, ShowData.DEFAULT_FOLDER, name);
-                Directory.Move(oldPath, newPath);
+                try
+                {
+                    Directory.Move(oldPath, newPath);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"No show folder named \"{showToChange.Name}\" found, creating folder...");
+                    Directory.CreateDirectory(newPath);
+                }
                 Console.WriteLine($"Changed show folder name.");
             }
         }
-
-        void EditChannel(ChannelData channel)
+        void EditChannel(ChannelData channelToChange)
         {
+            string name = channelToChange.Name;
+            string channelType = channelToChange.ChannelType;
+            string shows = string.Join("|", channelToChange.Shows);
+            short number = channelToChange.Number;
+            TimeSpan start = channelToChange.StartTime, end = channelToChange.EndTime;
+            List<string> showsList = channelToChange.Shows.ToList();
+
+            string? output = string.Empty;//used for console output when using ReadLine()
+
+            Console.WriteLine($"Editing {channelToChange.Name}... (Brackets is default value)");
+            //channel name
+            Console.Write($"Name [{name}]: ");
+            output = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(output) == false)
+            {
+                name = output;
+            }
+            //number
+            Console.Write($"channel number [{number}]: ");
+            output = Console.ReadLine();
+            if (string.IsNullOrEmpty(output) == false)
+            {
+                if (short.TryParse(output, out short val) == false)
+                {
+                    Console.WriteLine("Unable to parse, resorting to default...");
+                }
+                else
+                {
+                    number = val;
+                }
+            }
+            //channel type
+            Console.Write($"Channel type [{channelType}]: ");
+            output = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(output) == false)
+            {
+                channelType = output;
+            }
+            //start time
+            //start time
+            Console.Write($"Start time [{start.ToString(@"hh\:mm")}]: ");
+            output = Console.ReadLine();
+            if (string.IsNullOrEmpty(output) == false)
+            {
+                if (TimeSpan.TryParse(output, out TimeSpan val) == false)
+                {
+                    Console.WriteLine("Unable to parse, hours can only be between 0-23. resorting to default...");
+
+                }
+                else
+                {
+                    start = val;
+                }
+            }
+            //end time
+            Console.Write($"End time [{end.ToString(@"hh\:mm")}]: ");
+            output = Console.ReadLine();
+            if (string.IsNullOrEmpty(output) == false)
+            {
+                if (TimeSpan.TryParse(output, out TimeSpan val) == false)
+                {
+                    Console.WriteLine("Unable to parse, hours can only be between 0-23. resorting to default...");
+
+                }
+                else
+                {
+                    end = val;
+                }
+            }
+            //shows
+            Console.WriteLine($"Shows, separated by \"|\" [{shows}]: ");
+            string[] showNames = Console.ReadLine().Split("|");//TODO: figure out how to have this separate like normal arguments (space separated unless between quotes)
+            if (showNames.Length > 0)
+            {
+                bool found = false;
+                showsList.Clear();
+                for (int i = 0; i < showNames.Length; i++)
+                {
+                    if (string.IsNullOrWhiteSpace(showNames[i].Trim()) == true)
+                    { continue; }
+                    Console.Write($"Looking for show \"{showNames[i]}\"... ");
+                    //try and get the shows by that name
+                    if (found == true)
+                    {
+                        Console.WriteLine("Found! adding...");
+                    }
+                    else
+                    {
+                        //will still add, in case someone uses this on a separate machine than the one with the actual shows
+                        Console.WriteLine("NOT Found! check spelling, still adding...");
+                    }
+                    showsList.Add(showNames[i].Trim());
+                }
+            }
+
+            ChannelData channel = new ChannelData(number, name, channelType, start, end, showsList.ToArray());
+            Console.WriteLine("Updating data file...");
+            int size = _channelDataIO.WriteToDataFile(channel, _workingDirectory, createContentFolder: false);
+            Console.WriteLine($"({size}KB) Updated {channel}");
+            //if name changes, move all over to other folder
+            if (name.Equals(channelToChange.Name) == false)
+            {
+                _channelDataIO.GetExistingPath(Path.Combine(_workingDirectory, ChannelDataIO.BASE_FOLDER, ChannelData.DEFAULT_FOLDER), out string oldDataFile, channelToChange.Name + ChannelData.FILETYPE, channelToChange.Name + ChannelData.FILETYPE_LONG);
+                _channelDataIO.DeleteDataFile(oldDataFile);
+                Console.WriteLine($"Changing channel folder name {channelToChange.Name} > {name}...");
+                string oldPath = Path.Combine(_workingDirectory, ChannelDataIO.BASE_FOLDER, ChannelData.DEFAULT_FOLDER, channelToChange.Name);
+                string newPath = Path.Combine(_workingDirectory, ChannelDataIO.BASE_FOLDER, ChannelData.DEFAULT_FOLDER, name);
+                try
+                {
+                    Directory.Move(oldPath, newPath);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"No channel folder named \"{channelToChange.Name}\" found, creating folder...");
+                    Directory.CreateDirectory(newPath);
+                }
+                Console.WriteLine($"Changed channel folder name.");
+            }
 
         }
+
+        void ListAllShows(string path)
+        {
+            List<string> extensions = new List<string> { ShowData.FILETYPE, ShowData.FILETYPE_LONG };
+            string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
+                                .Where(f => extensions.IndexOf(Path.GetExtension(f)) >= 0).ToArray();
+
+            StringBuilder sb = new StringBuilder();
+            foreach (string show in files)
+            {
+                sb.AppendLine("- " + Path.GetFileNameWithoutExtension(show));
+            }
+            Console.WriteLine($"{files.Length} shows found:");
+            Console.WriteLine(sb.ToString());
+        }
+        void ListAllChannels(string path)
+        {
+            List<string> extensions = new List<string> { ChannelData.FILETYPE, ChannelData.FILETYPE_LONG };
+            string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
+                                .Where(f => extensions.IndexOf(Path.GetExtension(f)) >= 0).ToArray();
+
+            StringBuilder sb = new StringBuilder();
+            foreach (string channel in files)
+            {
+                sb.AppendLine("- " + Path.GetFileNameWithoutExtension(channel));
+            }
+            Console.WriteLine($"{files.Length} channels found:");
+            Console.WriteLine(sb.ToString());
+        }
+
         void ShowAllRatings()
         {
             StringBuilder str = new StringBuilder();
