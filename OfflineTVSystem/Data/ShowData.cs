@@ -26,11 +26,11 @@ namespace OTS.Data
         /// <summary>Age rating for the show or movie</summary>
         public AgeRating Rating { get; set; }
         /// <summary>Is this show all ads?</summary>
-        public bool IsAds { get; set; }
+        public bool IsAds { get; set; }//TODO: add "isPromotional" bool, used for if the ads are promoting a movie, then also add the name of the movie (or make that part of the summary?)
         /// <summary>Is this show a movie (single file or multi-part)?</summary>
         public bool IsMovie { get; set; }
         /// <summary>Does this show have seasonal or multi-part specials?</summary>
-        public bool HasSpecials { get; set; }
+        public bool HasSpecials { get; set; }//TODO: change this from "hasSpecials" to "hasSeasonal" (and include in IsAds request)
 
         /// <summary>Struct that contains the data for a show</summary>
         /// <param name="name">The Name of the show or movie (max length 128 characters)</param>
