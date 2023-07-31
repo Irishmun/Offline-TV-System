@@ -31,7 +31,7 @@ namespace OTS.Data
         ///it will instead end directly when this starts airing.</remarks>
         public TimeSpan StartTime { get; set; }
         /// <summary>Time that this channel ends airing for the day.</summary>
-        ///<remarks>///If <see cref="EndTime"/> is earlier than <see cref="StartTime"/>, it is assumed that airing will end on the next day.
+        ///<remarks>If <see cref="EndTime"/> is earlier than <see cref="StartTime"/>, it is assumed that airing will end on the next day.
         ///<see cref="StartTime"/> takes priority, if a startingtime from a different channel with the same <see cref="Number"/> 
         ///is earlier than this value, this channel will stop airing at that time instead.</remarks>
         public TimeSpan EndTime { get; set; }

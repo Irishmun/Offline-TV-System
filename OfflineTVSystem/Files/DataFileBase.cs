@@ -23,6 +23,7 @@ namespace OTS.Files
         /// <summary>Returns the content from the given file as <typeparamref name="T"/></summary>
         /// <param name="path">path to the file to get data from</param>
         /// <returns><typeparamref name="T"/> with the data from file</returns>
+        /// <remarks>note that, if a property name changes, its value will be ignored</remarks>
         public abstract bool GetData(string path, out T result);
 
         /// <summary>Returns first found file path if any of the given filenames exists at their shared path.</summary>

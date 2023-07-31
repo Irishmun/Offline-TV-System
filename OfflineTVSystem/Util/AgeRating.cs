@@ -1,4 +1,4 @@
-﻿namespace OTS.Rating
+﻿namespace OTS.Util
 {
     //https://en.wikipedia.org/wiki/Motion_picture_content_rating_system
     /// <summary>Age Ratings for each country, for both movies and tv shows</summary>

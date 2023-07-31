@@ -17,6 +17,7 @@ namespace OTS.Files
             return WriteToFile(data, path, fileName + filetype, createContentFolder);
         }
 
+
         public override bool GetData(string path, out ShowData result)
         {
             if (File.Exists(path) == false)
