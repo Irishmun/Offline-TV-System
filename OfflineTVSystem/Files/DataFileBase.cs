@@ -11,6 +11,8 @@ namespace OTS.Files
         public const int BYTES_PER_MEGABYTE = 1048576; //1024 * 1024
         public const string BASE_FOLDER = "OTS";
 
+        protected string workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
         /// <summary>Writes the <see cref="Data.ChannelData"/> to a file with the <see cref="Data.ChannelData.FILETYPE"/> extension</summary>
         /// <param name="data">Data to write to the file, will overwrite file with the same name</param>
         /// <param name="path">Path to create the file in</param>
@@ -25,6 +27,9 @@ namespace OTS.Files
         /// <returns><typeparamref name="T"/> with the data from file</returns>
         /// <remarks>note that, if a property name changes, its value will be ignored</remarks>
         public abstract bool GetData(string path, out T result);
+
+        /// <summary>Returns the relative filepath from the application to the folder</summary>
+        public abstract string GetPath();
 
         /// <summary>Returns first found file path if any of the given filenames exists at their shared path.</summary>
         /// <param name="sharedPath">path that all possible files share</param>

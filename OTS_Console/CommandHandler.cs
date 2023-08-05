@@ -55,6 +55,26 @@ namespace OTS_Console
                     //list all shows in given path OR in current directory if no path is given (recursive)
                     ListAllShows(Path.Combine(_workingDirectory + ShowDataIO.BASE_FOLDER));
                     break;
+                case COMMAND_LISTEPISODES:
+                    if (args.Length >= 2)
+                    {
+                        if (_showDataIO.GetExistingPath(Path.Combine(_workingDirectory, ShowDataIO.BASE_FOLDER, ShowData.DEFAULT_FOLDER), out string path, args[1] + ShowData.FILETYPE, args[1] + ShowData.FILETYPE_LONG) == true)
+                        {
+                            if (_showDataIO.GetData(path, out ShowData data) == true)
+                            {
+                                ListEpisodes(data);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Unable to find show \"{args[1]}\", please check spelling and try again.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Usage: {COMMAND_LISTEPISODES} [Show name]");
+                    }
+                    break;
                 case COMMAND_LISTCHANNELS:
                     //list all channels in given path OR in current directory if no path is given (recursive)
                     ListAllChannels(Path.Combine(_workingDirectory + ChannelDataIO.BASE_FOLDER));
@@ -238,13 +258,17 @@ namespace OTS_Console
                 case COMMAND_SEQUENTIAL:
                     ShowAllSequentials();
                     break;
+                case "--debug-showtest":
+                    DEBUG_PrintGenericEpisode();
+                    break;
                 default:
                     Console.WriteLine($"Command \"{command}\" not recognized, type \"{COMMAND_HELP}\" or \"{COMMAND_HELP_SHORT}\" for help");
                     break;
             }
         }
 
-        #region util methods
+
+        #region util command methods
         void ProvideHelp()
         {
             Console.WriteLine("Here's a list of all available commands:\n" +
@@ -301,12 +325,13 @@ namespace OTS_Console
             Console.WriteLine(str.ToString());
         }
         #endregion
-        #region create file methods
+        #region create file command methods
         void CreateShow()
         {
             string name = "show";
-            string thumbnailPath = "cover.jpg";
+            string thumbnailFile = "cover.jpg";
             string summary = string.Empty;
+            string contentPath = string.Empty;
             AgeRating rating = AgeRating.NOT_RATED;
             SequentialImportance sequential = SequentialImportance.ANY_ORDER;
             TimeSpan start = TimeSpan.Zero, end = TimeSpan.Zero;
@@ -321,9 +346,12 @@ namespace OTS_Console
             {
                 //is movie?
                 Console.Write("Is this show a movie, single or multi-part? [y/N]: ");
-                isMovie = DefaultToTrue();
-                Console.WriteLine("Defaulting \"Has Specials\" to false...");
-                hasSpecials = false;
+                isMovie = DefaultToFalse();
+                if (isMovie == true)
+                {
+                    Console.WriteLine("Defaulting \"Has Specials\" to false...");
+                    hasSpecials = false;
+                }
             }
             else
             {
@@ -344,19 +372,22 @@ namespace OTS_Console
             output = Console.ReadLine();
             if (IsEmptyString(output) == false)
             {
-                output = illegalChars.Replace(output, "_");
-                name = isPromotional == true ? "promoting-" + output : output;
-                thumbnailPath = Path.Combine(name, thumbnailPath);
+                if (ReplaceIllegalChars(output, out name) == true)
+                {
+                    Console.WriteLine("illegal characters found, renamed to: " + name);
+                }
             }
+            name = isPromotional == true ? "promoting-" + output : output;
+            contentPath = Path.Combine(_showDataIO.GetPath(), name);
+
             if (isAds == false)
             {//don't need a summary or thumbnail for ads
                 //thumbnail
-                Console.Write($"Please provide the path to the show's thumbnail [{ShowData.DEFAULT_FOLDER}\\{thumbnailPath}]: ");
+                Console.Write($"Please provide the filename of the thumbnail [{thumbnailFile}]: ");
                 output = Console.ReadLine();
                 if (IsEmptyString(output) == false)
                 {
-
-                    thumbnailPath = Path.Combine(name, output);
+                    thumbnailFile = output;
                 }
                 //summary
                 Console.Write($"Please provide a summary to the show [\"{summary}\"]: ");
@@ -394,7 +425,7 @@ namespace OTS_Console
             {
                 end = TryParseTime(output, TimeSpan.Zero);
             }
-            ShowData show = new ShowData(name, thumbnailPath, summary, rating, sequential, start, end, isAds, isPromotional, isMovie, hasSpecials);
+            ShowData show = new ShowData(name, thumbnailFile, summary, contentPath, rating, sequential, start, end, isAds, isPromotional, isMovie, hasSpecials);
             Console.WriteLine("Writing to data file...");
             int size = _showDataIO.WriteToDataFile(show, _workingDirectory);
             Console.WriteLine($"({size}KB) Created {show}");
@@ -412,7 +443,10 @@ namespace OTS_Console
             output = Console.ReadLine();
             if (IsEmptyString(output) == false)
             {
-                name = output;
+                if (ReplaceIllegalChars(output, out name) == true)
+                {
+                    Console.WriteLine("illegal characters found, renamed to: " + name);
+                }
             }
             //channel number
             Console.Write($"Please provide the channel number [{number}]: ");
@@ -480,12 +514,13 @@ namespace OTS_Console
             Console.WriteLine($"({size}KB) Created {channel}");
         }
         #endregion
-        #region edit file methods
+        #region edit file command methods
         void EditShow(ShowData showToChange)
         {
             string name = showToChange.Name;
-            string thumbnailPath = showToChange.ThumbnailPath;
+            string thumbnailFile = showToChange.ThumbnailFile;
             string summary = showToChange.Summary;
+            string contentPath = showToChange.ContentPath;
             AgeRating rating = showToChange.Rating;
             SequentialImportance sequential = showToChange.EpisodeImportance;
             TimeSpan start = TimeSpan.Zero, end = TimeSpan.Zero;
@@ -554,21 +589,21 @@ namespace OTS_Console
             output = Console.ReadLine();
             if (IsEmptyString(output) == false)
             {//TODO: remove "promoting-" if isPromotional is now false, add it if true
-                name = output;
+                if (ReplaceIllegalChars(output, out name) == true)
+                {
+                    Console.WriteLine("illegal characters found, renamed to: " + name);
+                }
+                contentPath = Path.Combine(_showDataIO.GetPath(), name);
             }
 
             if (isAds == false)
             {
                 //thumbnail
-                Console.Write($"Thumbnail Name [{name}\\{Path.GetFileName(thumbnailPath)}]: ");
+                Console.Write($"Thumbnail Name [{thumbnailFile}]: ");
                 output = Console.ReadLine();
                 if (IsEmptyString(output) == false)
                 {
-                    thumbnailPath = Path.Combine(name, output);
-                }
-                else
-                {
-                    thumbnailPath = Path.Combine(name, Path.GetFileName(thumbnailPath));
+                    thumbnailFile = output;
                 }
                 //summary
                 Console.Write($"Summary, leave empty to use existing summary: ");
@@ -607,7 +642,7 @@ namespace OTS_Console
             {
                 end = TryParseTime(output, TimeSpan.Zero);
             }
-            ShowData show = new ShowData(name, thumbnailPath, summary, rating, sequential, start, end, isAds, isPromotional, isMovie, hasSeasonal);
+            ShowData show = new ShowData(name, thumbnailFile, summary, contentPath, rating, sequential, start, end, isAds, isPromotional, isMovie, hasSeasonal);
             Console.WriteLine("Updating data file...");
             int size = _showDataIO.WriteToDataFile(show, _workingDirectory, createContentFolder: false);
             Console.WriteLine($"({size}KB) Updated {show}");
@@ -648,7 +683,10 @@ namespace OTS_Console
             output = Console.ReadLine();
             if (IsEmptyString(output) == false)
             {
-                name = output;
+                if (ReplaceIllegalChars(output, out name) == true)
+                {
+                    Console.WriteLine("illegal characters found, renamed to: " + name);
+                }
             }
             //number
             Console.Write($"channel number [{number}]: ");
@@ -738,7 +776,7 @@ namespace OTS_Console
 
         }
         #endregion
-        #region update file methods
+        #region update file command methods
         void UpdateShow(ShowData showToUpdate, string path)
         {
             Console.WriteLine("Updating show data...");
@@ -752,7 +790,7 @@ namespace OTS_Console
             Console.WriteLine($"({size}KB) Updated {channelToUpdate}");
         }
         #endregion
-        #region list files methods
+        #region list files command methods
         void ListAllShows(string path)
         {
             List<string> extensions = new List<string> { ShowData.FILETYPE, ShowData.FILETYPE_LONG };
@@ -781,8 +819,40 @@ namespace OTS_Console
             Console.WriteLine($"{files.Length} channels found:");
             Console.WriteLine(sb.ToString());
         }
+        private void ListEpisodes(ShowData data)
+        {
+            bool atLeastOneEpisode = false;
+            string[] files = Directory.GetFiles(Path.Combine(_showDataIO.GetPath(), data.Name));
+            StringBuilder str = new StringBuilder();
+            //: Season 000 Episode 0000 Part 0 (32)
+            foreach (string file in files)
+            {
+                if (EpisodeData.IsValidFileName(file))
+                {
+                    EpisodeData ep = new EpisodeData(data, file);
+                    str.AppendLine($"{ep} [{Path.GetFileName(ep.FileName)}]");
+                    atLeastOneEpisode = true;
+                }
+            }
+            if (atLeastOneEpisode == true)
+            {
+                Console.WriteLine(data.Name + " has the following episodes:");
+                Console.WriteLine(str.ToString());
+                return;
+            }
+            Console.WriteLine(data.Name + " has no valid episodes");
+        }
         #endregion
-        #region special methods
+        #region util methods
+        /// <summary>Replaces the illegal characters in filename with an underscore</summary>
+        /// <param name="input">text that might contain illegal chars</param>
+        /// <returns>if any text has been replaced</returns>
+        private bool ReplaceIllegalChars(string input, out string res)
+        {
+            res = string.Join("_", input.Split(Path.GetInvalidFileNameChars()));
+            res = string.Join("_", res.Split(Path.GetInvalidPathChars()));
+            return input.Equals(res) == false;
+        }
         /// <summary>Returns whether value starts with "y" or is empty</summary>
         /// <param name="val">value to check</param>
         private bool DefaultToTrue()
@@ -852,10 +922,32 @@ namespace OTS_Console
         }
 
         #endregion
+        #region debug methods
+        private void DEBUG_PrintGenericEpisode()
+        {
+            Console.WriteLine("Generating Generic Show for the episode...");
+            ShowData tempShow = ShowData.TestShow();
+            Console.WriteLine("Generating single episode...");
+            EpisodeData tempEpisode = new EpisodeData(tempShow, _workingDirectory, 324, 1, title: "Episode Title");
+            string tempEpisodeName = tempEpisode.CreateFileName();
+            Console.WriteLine(tempEpisodeName);
+            Console.WriteLine("Generating multi-part episode...");
+            tempEpisode = new EpisodeData(tempShow, _workingDirectory, 20, 10, 2, "Episode Title");
+            string multipartName = tempEpisode.CreateFileName();
+            Console.WriteLine(multipartName);
+            Console.WriteLine("Trying reversing the regular episode name...");
+            EpisodeData revEpisode = new EpisodeData(tempShow, tempEpisodeName);
+            Console.WriteLine(revEpisode);
+            Console.WriteLine("Trying reversing the multi-part episode name...");
+            revEpisode = new EpisodeData(tempShow, multipartName);
+            Console.WriteLine(revEpisode);
+        }
+        #endregion
         #region Command names
         internal const string COMMAND_VERSION = "--version", COMMAND_VERSION_SHORT = "-v";
         internal const string COMMAND_HELP = "--help", COMMAND_HELP_SHORT = "-h";
         internal const string COMMAND_LISTSHOWS = "--listshows";
+        internal const string COMMAND_LISTEPISODES = "--listepisodes";
         internal const string COMMAND_LISTCHANNELS = "--listchannels";
         internal const string COMMAND_LISTSCHEDULES = "--listschedules";
         internal const string COMMAND_CREATESHOW = "--createshow";

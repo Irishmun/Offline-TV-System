@@ -35,5 +35,9 @@ namespace OTS.Files
             }
         }
 
+        public override string GetPath()
+        {
+            return Path.Combine(workingDirectory, BASE_FOLDER, ShowData.DEFAULT_FOLDER);
+        }
     }
 }

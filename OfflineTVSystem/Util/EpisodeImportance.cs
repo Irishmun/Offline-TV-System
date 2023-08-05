@@ -1,5 +1,7 @@
 ﻿namespace OTS.Util
 {
+    //TODO: decide on how START_AND_END and PER_SEASON handle knowing which episodes have already been played
+
     /// <summary>How important is it that the episodes are in sequential order</summary>
     public enum SequentialImportance
     {

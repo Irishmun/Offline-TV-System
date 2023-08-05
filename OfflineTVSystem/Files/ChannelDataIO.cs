@@ -32,5 +32,9 @@ namespace OTS.Files
             }
         }
 
+        public override string GetPath()
+        {
+            return Path.Combine(workingDirectory, BASE_FOLDER, ChannelData.DEFAULT_FOLDER);
+        }
     }
 }

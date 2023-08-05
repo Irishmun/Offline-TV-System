@@ -21,9 +21,11 @@ namespace OTS.Data
         /// <summary>Name of the show</summary>
         public string Name { get; set; }
         /// <summary>Path to the show's default thumbnail</summary>
-        public string ThumbnailPath { get; set; }
+        public string ThumbnailFile { get; set; }
         /// <summary>Summary of the show</summary>
         public string Summary { get; set; }
+        ///<summary>Base path for all content of this show</summary>
+        public string ContentPath { get; set; }
         /// <summary>Age rating for the show or movie</summary>
         public AgeRating Rating { get; set; }
         /// <summary>Time that this show starts airing for the day.</summary>
@@ -36,9 +38,6 @@ namespace OTS.Data
         public bool IsAds { get; set; }//TODO: add "isPromotional" bool, used for if the ads are promoting a movie, then also add the name of the movie (or make that part of the summary?)
         ///<summary>Is this show promotion for another show? Only applies when <see cref="IsAds"/> is true</summary>
         public bool IsPromotional { get; set; }
-
-        //TODO: perhaps add a "this show is brought to you by" option video type
-
         /// <summary>Is this show a movie (single file or multi-part)?</summary>
         public bool IsMovie { get; set; }
         /// <summary>Does this show have seasonal specials?</summary>
@@ -47,15 +46,16 @@ namespace OTS.Data
         public SequentialImportance EpisodeImportance { get; set; }
 
         /// <summary>Struct that contains the data for a show</summary>
-        /// <param name="name">The Name of the show or movie (max length 128 characters)</param>
-        /// <param name="thumbnailPath">The Path to the show's or movie's thumbnail</param>
-        /// <param name="summary">Summary of the show or movie (max length 320 characters)</param>
-        /// <param name="rating">Age rating for the show or movie</param>
-        public ShowData(string name, string thumbnailPath, string summary, AgeRating rating, SequentialImportance episodeImportance = SequentialImportance.ALL_IN_ORDER, TimeSpan start = default, TimeSpan end = default, bool isAds = false, bool isPromotional = false, bool isMovie = false, bool hasSeasonal = false)
+        /// <param name="name">The Name of the show (max length 128 characters)</param>
+        /// <param name="thumbnailFile">The filename of the show's thumbnail</param>
+        /// <param name="summary">Summary of the show (max length 320 characters)</param>
+        /// <param name="rating">Age rating for the show</param>
+        public ShowData(string name, string thumbnailFile, string summary, string basePath, AgeRating rating, SequentialImportance episodeImportance = SequentialImportance.ALL_IN_ORDER, TimeSpan start = default, TimeSpan end = default, bool isAds = false, bool isPromotional = false, bool isMovie = false, bool hasSeasonal = false)
         {
             this.Name = name;
-            this.ThumbnailPath = thumbnailPath;
+            this.ThumbnailFile = thumbnailFile;
             this.Summary = summary;
+            this.ContentPath = System.IO.Path.Combine(basePath, name);
             this.Rating = rating;
             this.EpisodeImportance = episodeImportance;
             this.IsAds = isAds;
@@ -84,17 +84,16 @@ namespace OTS.Data
             return $"({showType}){Name}";
         }
 
-        public static ShowData Default => new ShowData(string.Empty, string.Empty, string.Empty, default);
+        public static ShowData Default => new ShowData(string.Empty, string.Empty, string.Empty, string.Empty, default);
 
         public static ShowData TestShow()
         {
-            return new ShowData("Test Show", System.AppDomain.CurrentDomain.BaseDirectory, "Lorem ipsum dolor sit amet.", AgeRating.NOT_RATED);
+            return new ShowData("Test Show", "cover.jpg", "Lorem ipsum dolor sit amet.", System.AppDomain.CurrentDomain.BaseDirectory, AgeRating.NOT_RATED);
         }
 
         public override string ToString()
         {
             return $"\"{Name}\", Rated {Rating}, is ads:{IsAds}, is movie:{IsMovie}, has specials:{HasSeasonal}. Summary: \"{Summary}\"";
         }
-
     }
 }
