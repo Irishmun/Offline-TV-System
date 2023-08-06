@@ -434,7 +434,7 @@ namespace OTS_Console
         {
             Console.WriteLine("Creating a new channel... (Brackets is default value)");
             short number = 0;
-            string name = "Channel", channelType = "shows";
+            string name = "Channel", channelType = "shows", contentPath;
             TimeSpan start = TimeSpan.Zero, end = TimeSpan.Zero;
             List<string> shows = new List<string>();
             string? output = string.Empty;//used for console val when using ReadLine()
@@ -448,6 +448,7 @@ namespace OTS_Console
                     Console.WriteLine("illegal characters found, renamed to: " + name);
                 }
             }
+            contentPath = Path.Combine(_channelDataIO.GetPath(), name);
             //channel number
             Console.Write($"Please provide the channel number [{number}]: ");
             output = Console.ReadLine();
@@ -508,7 +509,7 @@ namespace OTS_Console
                     }
                 }
             }
-            ChannelData channel = new ChannelData(number, name, channelType, start, end, shows.ToArray());
+            ChannelData channel = new ChannelData(number, name, channelType, contentPath, start, end, shows.ToArray());
             Console.WriteLine("Writing to data file...");
             int size = _channelDataIO.WriteToDataFile(channel, _workingDirectory);
             Console.WriteLine($"({size}KB) Created {channel}");
@@ -671,6 +672,7 @@ namespace OTS_Console
             string name = channelToChange.Name;
             string channelType = channelToChange.ChannelType;
             string shows = string.Join("|", channelToChange.Shows);
+            string contentPath = channelToChange.ContentPath;
             short number = channelToChange.Number;
             TimeSpan start = channelToChange.StartTime, end = channelToChange.EndTime;
             List<string> showsList = channelToChange.Shows.ToList();
@@ -687,6 +689,7 @@ namespace OTS_Console
                 {
                     Console.WriteLine("illegal characters found, renamed to: " + name);
                 }
+                contentPath = Path.Combine(_showDataIO.GetPath(), name);
             }
             //number
             Console.Write($"channel number [{number}]: ");
@@ -750,7 +753,7 @@ namespace OTS_Console
                 }
             }
 
-            ChannelData channel = new ChannelData(number, name, channelType, start, end, showsList.ToArray());
+            ChannelData channel = new ChannelData(number, name, channelType, contentPath, start, end, showsList.ToArray());
             Console.WriteLine("Updating data file...");
             int size = _channelDataIO.WriteToDataFile(channel, _workingDirectory, createContentFolder: false);
             Console.WriteLine($"({size}KB) Updated {channel}");
@@ -824,14 +827,24 @@ namespace OTS_Console
             bool atLeastOneEpisode = false;
             string[] files = Directory.GetFiles(Path.Combine(_showDataIO.GetPath(), data.Name));
             StringBuilder str = new StringBuilder();
-            //: Season 000 Episode 0000 Part 0 (32)
-            foreach (string file in files)
+            if (data.IsAds == true && files.Length > 0)
             {
-                if (EpisodeData.IsValidFileName(file))
+                atLeastOneEpisode = true;
+                for (int i = 0; i < files.Length; i++)
                 {
-                    EpisodeData ep = new EpisodeData(data, file);
-                    str.AppendLine($"{ep} [{Path.GetFileName(ep.FileName)}]");
-                    atLeastOneEpisode = true;
+                    str.AppendLine($"[{Path.GetFileName(files[i])}]");
+                }
+            }
+            else
+            {
+                for (int i = 0; i < files.Length; i++)
+                {
+                    if (EpisodeData.IsValidFileName(files[i]))
+                    {
+                        EpisodeData ep = new EpisodeData(data, files[i]);
+                        str.AppendLine($"{ep} [{Path.GetFileName(ep.FileName)}]");
+                        atLeastOneEpisode = true;
+                    }
                 }
             }
             if (atLeastOneEpisode == true)

@@ -15,6 +15,8 @@ namespace OTS.Data
         public const string FILETYPE_LONG = ".channel";//or use .chnl
         /// <summary>Default folder for data files and content folders</summary>
         public const string DEFAULT_FOLDER = ".channels";
+        public const string TO_ADS_FOLDER = "ToAds";
+        public const string FROM_ADS_FOLDER = "FromAds";
 
         private const int MAX_NAME_DATA_LENGTH = 200;//100 characters, 2 bytes per character. "Why don't you just switch off your television set and go and do something less boring instead?"
 
@@ -25,6 +27,8 @@ namespace OTS.Data
         public string Name { get; set; }
         /// <summary>What type of content this channel airs.</summary>
         public string ChannelType { get; set; }//maybe change to enum as well (maybe even just leave out)
+        /// <summary>Base path for all content of this channel</summary>
+        public string ContentPath { get; set; }
         /// <summary>Time that this channel starts airing for the day.</summary>
         ///<remarks>If this value is the same as <see cref="EndTime"/>, channel will be treated as 24 hour channel.
         ///This value takes priority over <see cref="EndTime"/>, if another channel with the same <see cref="Number"/> ends airing when this one would have started, 
@@ -44,31 +48,33 @@ namespace OTS.Data
         /// If there are times where no channel is airing, will show blank instead</param>
         /// <param name="name">Name of the channel</param>
         /// <param name="channelType">What type of content this channel airs.</param>
+        /// <param name="basePath">base directory for this channel's content (video's, chimes, etc.)</param>
         /// <param name="start">Time that this channel starts airing for the day.</param>
         /// <param name="end">Time that this channel ends airing for the day.</param>
         /// <param name="shows">Shows that are aired on this channel</param>
         /// <remarks>Use <see cref="ChannelData.TestData()"/> or <see cref="ChannelData.TestDataWithShow()"/> to create a test show</remarks>
-        public ChannelData(short number, string name, string channelType, TimeSpan start, TimeSpan end, string[] shows)
+        public ChannelData(short number, string name, string channelType, string basePath, TimeSpan start, TimeSpan end, string[] shows)
         {
             this.Number = number;
             this.Name = name;
             this.ChannelType = channelType;
+            this.ContentPath = System.IO.Path.Combine(basePath, name);
             this.StartTime = start;
             this.EndTime = end;
             this.Shows = new HashSet<string>(shows);
             this._showDatas = new HashSet<ShowData>();//try and get all showDatas with the names in Shows
         }
 
-        public static ChannelData Default => new ChannelData(default, string.Empty, string.Empty, default, default, new string[0]);
+        public static ChannelData Default => new ChannelData(default, string.Empty, string.Empty, string.Empty, default, default, new string[0]);
 
         public static ChannelData TestData()
         {
-            return new ChannelData(-1, "TestShow", "Test Channel", TimeSpan.Zero, TimeSpan.Zero, new string[0]);
+            return new ChannelData(-1, "TestShow", "Test Channel", System.AppDomain.CurrentDomain.BaseDirectory, TimeSpan.Zero, TimeSpan.Zero, new string[0]);
         }
 
         public static ChannelData TestDataWithShow()
         {
-            return new ChannelData(-1, "TestShow", "Test Channel", TimeSpan.Zero, TimeSpan.Zero, new string[] { ShowData.TestShow().Name });
+            return new ChannelData(-1, "TestShow", "Test Channel", System.AppDomain.CurrentDomain.BaseDirectory, TimeSpan.Zero, TimeSpan.Zero, new string[] { ShowData.TestShow().Name });
         }
 
         public string GetAllShows()

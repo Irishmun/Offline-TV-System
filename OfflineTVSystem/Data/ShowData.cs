@@ -49,6 +49,7 @@ namespace OTS.Data
         /// <param name="name">The Name of the show (max length 128 characters)</param>
         /// <param name="thumbnailFile">The filename of the show's thumbnail</param>
         /// <param name="summary">Summary of the show (max length 320 characters)</param>
+        /// <param name="basePath">base directory for this show's content (video's thumbnails, etc.)</param>
         /// <param name="rating">Age rating for the show</param>
         public ShowData(string name, string thumbnailFile, string summary, string basePath, AgeRating rating, SequentialImportance episodeImportance = SequentialImportance.ALL_IN_ORDER, TimeSpan start = default, TimeSpan end = default, bool isAds = false, bool isPromotional = false, bool isMovie = false, bool hasSeasonal = false)
         {
