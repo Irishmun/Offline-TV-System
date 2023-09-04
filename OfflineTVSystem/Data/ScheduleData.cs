@@ -17,7 +17,25 @@ namespace OTS.Data
         bool UniqueEpisode;
         bool ToAd;
         bool FromAd;
-        bool AdInterupts;
+        bool AdInterupts;//should the currently playing show have it's playback time be stored to continue from after the ads are done?
+
+		/// <param name="show">Which show will have an episode played</param>
+		/// <param name="episodeFile">The file to play</param>
+		/// <param name="startsAiring">When the Episode starts airing</param>
+		/// <param name="seperateScheduleBlock">Whether this show should create a seperate block on the schedule or be connected to the current schedule block</param>
+		/// <param name="toAds">If the file indicates that ads will be playing after this</param>
+		/// <param name="fromAds">If the file indicates that the episode will be playing after this</param>
+		/// <param name="InteruptsShow">If this file pauses the currently playing episode or not</param>
+        public ScheduleData(ShowData show, string episodeFile, TimeSpan startsAiring, bool seperateScheduleBlock, bool toAds = false, bool fromAds = false, bool InteruptsShow = false)
+        {
+			this.Show = show;
+			this.EpisodeFile = episodeFile;
+			this.StartsAiring = startsAiring;
+			this.UniqueEpisode = seperateScheduleBlock;
+			this.ToAd = toAds;
+			this.FromAd = fromAds;
+			this.AdInterupts = InteruptsShow;
+        }
         /*
          * Dictionary<ChannelData,ScheduleData[]>
         string channel_name; //will also have the channel number
