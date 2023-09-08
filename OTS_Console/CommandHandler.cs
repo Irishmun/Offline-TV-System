@@ -1,6 +1,7 @@
 ﻿using OTS.Data;
 using OTS.Files;
 using OTS.Util;
+using OTS_Console.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -258,8 +259,13 @@ namespace OTS_Console
                 case COMMAND_SEQUENTIAL:
                     ShowAllSequentials();
                     break;
-                case "--debug-showtest":
+                case COMMAND_DEBUG_SHOWTEST:
                     DEBUG_PrintGenericEpisode();
+                    break;
+                case COMMAND_DEBUG_SPLITTEXT:
+                    Console.WriteLine("Insert some arguments to be split, separated by spaces and connected by quotes");
+                    string text = Console.ReadLine();
+                    Console.WriteLine(string.Join(Environment.NewLine, StringParser.ParseText(text)));
                     break;
                 default:
                     Console.WriteLine($"Command \"{command}\" not recognized, type \"{COMMAND_HELP}\" or \"{COMMAND_HELP_SHORT}\" for help");
@@ -368,6 +374,7 @@ namespace OTS_Console
                 hasSpecials = DefaultToFalse();
             }
             //show name
+            //TODO: check if the name is not already in use (loop untill unused name is given?)
             Console.Write($"Please provide the show name [\"{name}\"]: ");
             output = Console.ReadLine();
             if (IsEmptyString(output) == false)
@@ -439,6 +446,7 @@ namespace OTS_Console
             List<string> shows = new List<string>();
             string? output = string.Empty;//used for console val when using ReadLine()
             //channel name
+            //TODO: check if the name is not already in use (loop untill unused name is given?)
             Console.Write($"Please provide the channel name [\"{name}\"]: ");
             output = Console.ReadLine();
             if (IsEmptyString(output) == false)
@@ -485,10 +493,10 @@ namespace OTS_Console
                 end = TryParseTime(output, TimeSpan.Zero);
             }
             //shows
-            Console.WriteLine("Please provide the names of the shows to add to this channel, separated by \"|\" [no shows]: ");
-            string[] showNames = Console.ReadLine().Split("|");//TODO: figure out how to have this separate like normal arguments (space separated unless between quotes)
+            Console.WriteLine("Please provide the names of the shows to add to this channel, separated by a space [no shows]: ");
+            string[] showNames = StringParser.ParseText(Console.ReadLine()).ToArray();//TODO: figure out how to have this separate like normal arguments (space separated unless between quotes)
             if (showNames.Length > 0)
-            {
+            {//TODO: remove duplicate entries
                 for (int i = 0; i < showNames.Length; i++)
                 {
                     if (IsEmptyString(showNames[i]) == true)
@@ -586,6 +594,7 @@ namespace OTS_Console
                 hasSeasonal = false;
             }
             //show name
+            //TODO: check if the new name is not already in use (loop untill unused name is given?)
             Console.Write($"Name [{name}]: ");
             output = Console.ReadLine();
             if (IsEmptyString(output) == false)
@@ -596,7 +605,6 @@ namespace OTS_Console
                 }
                 contentPath = Path.Combine(_showDataIO.GetPath(), name);
             }
-
             if (isAds == false)
             {
                 //thumbnail
@@ -681,6 +689,7 @@ namespace OTS_Console
 
             Console.WriteLine($"Editing {channelToChange.Name}... (Brackets is default value)");
             //channel name
+            //TODO: check if the new name is not already in use (loop untill unused name is given?)
             Console.Write($"Name [{name}]: ");
             output = Console.ReadLine();
             if (IsEmptyString(output) == false)
@@ -728,10 +737,10 @@ namespace OTS_Console
                 end = TryParseTime(output, end);
             }
             //shows
-            Console.WriteLine($"Shows, separated by \"|\" [{shows}]: ");
-            string[] showNames = Console.ReadLine().Split("|");//TODO: figure out how to have this separate like normal arguments (space separated unless between quotes)
+            Console.WriteLine($"Shows, separated by a space [{shows}]: ");
+            string[] showNames = StringParser.ParseText(Console.ReadLine()).ToArray();//TODO: figure out how to have this separate like normal arguments (space separated unless between quotes)
             if (showNames.Length > 0)
-            {
+            {//TODO: remove duplicate entries
                 bool found = false;
                 showsList.Clear();
                 for (int i = 0; i < showNames.Length; i++)
@@ -980,6 +989,10 @@ namespace OTS_Console
         internal const string COMMAND_SETUP = "--setup";
         internal const string COMMAND_AGERATINGS = "--ageratings";
         internal const string COMMAND_SEQUENTIAL = "--EpisodeImportances";
+        #endregion
+        #region Debug Command names
+        internal const string COMMAND_DEBUG_SHOWTEST = "--debug-showtest";
+        internal const string COMMAND_DEBUG_SPLITTEXT = "--debug-arguments";
         #endregion
     }
 }

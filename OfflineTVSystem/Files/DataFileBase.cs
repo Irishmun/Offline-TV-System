@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualBasic;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 
@@ -112,6 +113,9 @@ namespace OTS.Files
             FileInfo fi = new FileInfo(destination);
             if (fi.Exists == false)
             { return -1; }
+#if DEBUG
+            System.Diagnostics.Debug.WriteLine(destination);
+#endif
             return (int)Math.Ceiling(((decimal)fi.Length / (decimal)BYTES_PER_KILOBYTE));
         }
     }
